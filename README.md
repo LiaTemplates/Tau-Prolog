@@ -10,7 +10,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 
 @tau_prolog_program
 <script>
-    window['@0'] = pl.create();
+    window['@0'] = window.pl.create();
     var c = window['@0'].consult(`{X}`);
     if( c !== true )
         'error parsing program: ' + c.args[0]
@@ -32,7 +32,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
             if(answer == false)
                 c = false;
             else
-                rslt += pl.format_answer( answer ) + "<br>";
+                rslt += window.pl.format_answer( answer ) + "<br>";
         };
         while(c)
             window['@0'].answer(callback);
