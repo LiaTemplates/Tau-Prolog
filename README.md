@@ -73,7 +73,7 @@ likes(sam, apples).
 likes(dean, whiskey).
 ```
 <script>
-    window['session'] = pl.create();
+    window['session'] = window.pl.create();
     var c = window['session'].consult(`{X}`);
 
     if( c !== true ) {
@@ -103,7 +103,7 @@ likes(sam, X).
             if(answer == false) {
                 c = false;
             } else {
-                rslt += pl.format_answer( answer ) + "<br>";
+                rslt += window.pl.format_answer( answer ) + "<br>";
             }
         };
 
