@@ -6,7 +6,7 @@ version:  1.0.0
 language: en_US
 narrator: US English Female
 
-script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/45dc2ab1/js/tau-prolog.min.js
+script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-prolog.js
 
 @tau_prolog_program
 <script>
