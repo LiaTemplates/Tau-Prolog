@@ -13,7 +13,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
     window['@0'] = window.pl.create();
     var c = window['@0'].consult(`{X}`);
     if( c !== true )
-        'error parsing program: ' + c.args[0]
+        throw {message: 'parsing program => ' + c.args[0]};
     else
         "database loaded";
 </script>
@@ -23,7 +23,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 <script>
     var q = window['@0'].query(`{X}`);
     if( q !== true ) {
-        'error parsing query: ' + q.args[0]
+        throw {message: 'parsing query => ' + q.args[0]};
     }
     else {
         var rslt = "";
@@ -77,7 +77,7 @@ likes(dean, whiskey).
     var c = window['session'].consult(`{X}`);
 
     if( c !== true ) {
-        'error parsing program: ' + c.args[0]
+        throw {message: 'parsing program => ' + c.args[0]};
     }
     else {
         "database loaded";
@@ -93,7 +93,7 @@ likes(sam, X).
     var q = window['session'].query(`{X}`);
 
     if( q !== true ) {
-        'error parsing query: ' + q.args[0]
+        throw {message: 'parsing query => ' + q.args[0]};
     }
     else {
         var rslt = "";
