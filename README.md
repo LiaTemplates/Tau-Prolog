@@ -30,7 +30,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
     }
 
     if( window['@0']['query'] !== true ) {
-        throw {message: "parsing query for '@0' => "" + window['@0']['query'].args[0]};
+        throw {message: "parsing query for '@0' => " + window['@0']['query'].args[0]};
     }
     else {
         var callback = function(answer) {
