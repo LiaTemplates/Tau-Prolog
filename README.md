@@ -120,20 +120,20 @@ likes(dean, pie).
 likes(sam, apples).
 likes(dean, whiskey).
 ```
-@tau_prolog_program(session_name)
+@tau_prolog_program(template1)
 
 ** Queries **
 
 ```prolog
 likes(sam, X).
 ```
-@tau_prolog_query(session_name)
+@tau_prolog_query(template1)
 
 
 ## Full-Macro
 
 ```prolog
-@tau_prolog(session_nameX,`likes(sam, X).`)
+@tau_prolog(template2,`likes(sam, X).`)
 likes(sam, salad).
 likes(dean, pie).
 likes(sam, apples).
