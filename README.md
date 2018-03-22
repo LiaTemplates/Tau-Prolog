@@ -59,7 +59,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 
 -->
 
-# Arbeitsbuch PROLOG
+# Tau-Prolog template
 
 Template for integrating the Tau-Prolog interpreter into LiaScript
 
