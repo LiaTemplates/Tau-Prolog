@@ -13,9 +13,9 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
     window['@0'] = {session: window.pl.create(), query: null, rslt: "", query_str: ""};
     var c = window['@0']['session'].consult(`{X}`);
     if( c !== true )
-        throw {message: 'parsing program => ' + c.args[0]};
+        throw {message: "parsing program '@0' => " + c.args[0]};
     else
-        "database loaded";
+        "database '@0' loaded";
 </script>
 @end
 
@@ -30,7 +30,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
     }
 
     if( window['@0']['query'] !== true ) {
-        throw {message: 'parsing query => ' + window['@0']['query'].args[0]};
+        throw {message: "parsing query for '@0' => "" + window['@0']['query'].args[0]};
     }
     else {
         var callback = function(answer) {
