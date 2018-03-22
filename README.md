@@ -90,7 +90,7 @@ likes(sam, X).
 <script>
 var query = `{X}`;
 
-if(window['session_name']['query'] == null || window['@session_name']['query_str'] != query) {
+if(window['session_name']['query'] == null || window['session_name']['query_str'] != query) {
     window['session_name']['query_str'] = query;
     window['session_name']['rslt'] = "";
     window['session_name']['query'] = window['session_name']['session'].query(query);
