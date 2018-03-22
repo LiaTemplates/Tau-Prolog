@@ -10,8 +10,8 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 
 @tau_prolog_program
 <script>
-    window['@0'] = window.pl.create();
-    var c = window['@0'].consult(`{X}`);
+    window['@0'] = {session: window.pl.create(), query: null, rslt: "", query_str: ""};
+    var c = window['@0']['session'].consult(`{X}`);
     if( c !== true )
         throw {message: 'parsing program => ' + c.args[0]};
     else
@@ -21,22 +21,24 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 
 @tau_prolog_query
 <script>
-    var q = window['@0'].query(`{X}`);
-    if( q !== true ) {
-        throw {message: 'parsing query => ' + q.args[0]};
+    var query = `{X}`;
+
+    if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
+        window['@0']['query_str'] = query;
+        window['@0']['rslt'] = "";
+        window['@0']['query'] = window['@0']['session'].query(query);
+    }
+
+    if( window['@0']['query'] !== true ) {
+        throw {message: 'parsing query => ' + window['@0']['query'].args[0]};
     }
     else {
-        var rslt = "";
-        var c = true;
         var callback = function(answer) {
-            if(answer == false)
-                c = false;
-            else
-                rslt += window.pl.format_answer( answer ) + "<br>";
+            window['@0']['rslt'] +=  window.pl.format_answer( answer ) + "<br>";
         };
-        while(c)
-            window['@0'].answer(callback);
-        rslt;
+        window['@0']['session'].answer(callback);
+
+        window['@0']['rslt'];
     }
 </script>
 @end
@@ -57,10 +59,9 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 
 -->
 
-# Tau-Prolog Template
+# Arbeitsbuch PROLOG
 
 Template for integrating the Tau-Prolog interpreter into LiaScript
-
 
 ## Plain HTML
 
@@ -73,15 +74,12 @@ likes(sam, apples).
 likes(dean, whiskey).
 ```
 <script>
-    window['session'] = window.pl.create();
-    var c = window['session'].consult(`{X}`);
-
-    if( c !== true ) {
+    window["session_name"] = {session: window.pl.create(), query: null, rslt: "", query_str: ""};
+    var c = window["session_name"]['session'].consult(`{X}`);
+    if( c !== true )
         throw {message: 'parsing program => ' + c.args[0]};
-    }
-    else {
+    else
         "database loaded";
-    }
 </script>
 
 ** Queries **
@@ -90,28 +88,25 @@ likes(dean, whiskey).
 likes(sam, X).
 ```
 <script>
-    var q = window['session'].query(`{X}`);
+var query = `{X}`;
 
-    if( q !== true ) {
-        throw {message: 'parsing query => ' + q.args[0]};
-    }
-    else {
-        var rslt = "";
-        var c = true;
+if(window['session_name']['query'] == null || window['@session_name']['query_str'] != query) {
+    window['session_name']['query_str'] = query;
+    window['session_name']['rslt'] = "";
+    window['session_name']['query'] = window['session_name']['session'].query(query);
+}
 
-        var callback = function(answer) {
-            if(answer == false) {
-                c = false;
-            } else {
-                rslt += window.pl.format_answer( answer ) + "<br>";
-            }
-        };
+if( window['session_name']['query'] !== true ) {
+    throw {message: 'parsing query => ' + window['session_name']['query'].args[0]};
+}
+else {
+    var callback = function(answer) {
+        window['session_name']['rslt'] +=  window.pl.format_answer( answer ) + "<br>";
+    };
+    window['session_name']['session'].answer(callback);
 
-        while(c) {
-            window['session'].answer(callback);
-        }
-        rslt;
-    }
+    window['session_name']['rslt'];
+}
 </script>
 
 
