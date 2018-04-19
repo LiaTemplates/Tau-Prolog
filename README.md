@@ -11,7 +11,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 @tau_prolog_program
 <script>
     window['@0'] = {session: window.pl.create(), query: null, rslt: "", query_str: ""};
-    var c = window['@0']['session'].consult(`{X}`);
+    var c = window['@0']['session'].consult(`{{0}}`);
     if( c !== true )
         throw {message: "parsing program '@0' => " + c.args[0]};
     else
@@ -21,7 +21,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 
 @tau_prolog_query
 <script>
-    var query = `{X}`;
+    var query = `{{0}}`;
 
     if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
         window['@0']['query_str'] = query;
@@ -75,7 +75,7 @@ likes(dean, whiskey).
 ```
 <script>
     window["session_name"] = {session: window.pl.create(), query: null, rslt: "", query_str: ""};
-    var c = window["session_name"]['session'].consult(`{X}`);
+    var c = window["session_name"]['session'].consult(`{{0}}`);
     if( c !== true )
         throw {message: 'parsing program => ' + c.args[0]};
     else
@@ -88,7 +88,7 @@ likes(dean, whiskey).
 likes(sam, X).
 ```
 <script>
-var query = `{X}`;
+var query = `{{0}}`;
 
 if(window['session_name']['query'] == null || window['session_name']['query_str'] != query) {
     window['session_name']['query_str'] = query;
