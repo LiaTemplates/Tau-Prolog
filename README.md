@@ -3,7 +3,7 @@
 author:   Andre Dietrich
 email:    dietrich@ivs.cs.uni-magdeburg.de
 version:  1.0.0
-language: en_US
+language: en
 narrator: US English Female
 
 script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-prolog.js
