@@ -34,7 +34,7 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
     }
     else {
         var callback = function(answer) {
-            window['@0']['rslt'] +=  window.pl.format_answer( answer ) + "<br>";
+            window['@0']['rslt'] +=  window.pl.format_answer( answer ) + "\n";
         };
         window['@0']['session'].answer(callback);
 
@@ -101,7 +101,7 @@ if( window['session_name']['query'] !== true ) {
 }
 else {
     var callback = function(answer) {
-        window['session_name']['rslt'] +=  window.pl.format_answer( answer ) + "<br>";
+        window['session_name']['rslt'] +=  window.pl.format_answer( answer ) + "\n";
     };
     window['session_name']['session'].answer(callback);
 
