@@ -6,14 +6,71 @@ version:  1.0.0
 language: en
 narrator: US English Female
 
-script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-prolog.js
+script: https://rawgit.com/andre-dietrich/tau-prolog_template/master/js/tau-prolog.min.js
 
 @tau_prolog_program
 <script>
-    window['@0'] = {session: window.pl.create(), query: null, rslt: "", query_str: ""};
-    var c = window['@0']['session'].consult(`@input`);
-    if( c !== true )
-        throw {message: "parsing program '@0' => " + c.args[0]};
+
+    var db = `@input`;
+    window['@0'] = {session: window.pl.create(),
+                    query: null,
+                    rslt: "",
+                    query_str: "",
+                    db: db};
+    var c = window['@0']['session'].consult(db);
+
+    if( c !== true ){
+        var err = new LiaError("parsing program '@0' => " + c.args[0], 1);
+        var c_err = window.pl.flatten_error(c);
+        err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
+        throw err;
+    }
+    else
+        "database '@0' loaded";
+</script>
+@end
+
+@tau_prolog_program2
+<script>
+
+    var db1 = `@input(0)`;
+    var db2 = `@input(1)`;
+
+    window['@0'] = {session: window.pl.create(),
+                    query: null,
+                    rslt: "",
+                    query_str: "",
+                    db: db};
+    var c = window['@0']['session'].consult(db1+db2);
+
+    if( c !== true ){
+        var err = new LiaError("parsing program '@0' => " + c.args[0], 2);
+        var c_err = window.pl.flatten_error(c);
+
+        err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
+        throw err;
+    }
+    else
+        "database '@0' loaded";
+</script>
+@end
+
+@tau_prolog_programX
+<script>
+    var db = `@1`;
+    window['@0'] = {session: window.pl.create(),
+                    query: null,
+                    rslt: "",
+                    query_str: "",
+                    db: db};
+    var c = window['@0']['session'].consult(db);
+
+    if( c !== true ){
+        var err = new LiaError("parsing program '@0' => " + c.args[0], 1);
+        var c_err = window.pl.flatten_error(c);
+        err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
+        throw err;
+    }
     else
         "database '@0' loaded";
 </script>
@@ -23,39 +80,75 @@ script:   https://cdn.rawgit.com/liaScript/tau-prolog_template/master/js/tau-pro
 <script>
     var query = `@input`;
 
-    if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
-        window['@0']['query_str'] = query;
-        window['@0']['rslt'] = "";
-        window['@0']['query'] = window['@0']['session'].query(query);
+    try {
+        if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
+            window['@0']['query_str'] = query;
+            window['@0']['rslt'] = "";
+            window['@0']['query'] = window['@0']['session'].query(query);
+        }
+    }
+    catch(e) {
+        throw {message: "'@0' has not been consulted"};
     }
 
     if( window['@0']['query'] !== true ) {
-        throw {message: "parsing query for '@0' => " + window['@0']['query'].args[0]};
+        //throw {message: "parsing query for '@0' => " + window['@0']['query'].args[0]};
+
+        var err = new LiaError("parsing query for '@0' => " + window['@0']['query'].args[0], 1);
+        var c_err = window.pl.flatten_error(window['@0']['query']);
+        err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
+        throw err;
     }
     else {
-        var callback = function(answer) {
-            window['@0']['rslt'] +=  window.pl.format_answer( answer ) + "\n";
-        };
-        window['@0']['session'].answer(callback);
-
+        window['@0']['session'].answer(e => {
+            window['@0']['rslt'] +=  window.pl.format_answer(e)+"\n";
+        });
         window['@0']['rslt'];
     }
 </script>
 @end
 
+@tau_prolog_check
+<script>
+    var db = null;
+
+    try {
+        db = window['@0']['db'];
+    }
+    catch(e) {
+        throw {message: "'@0' has not been consulted"};
+    }
+
+    var session = window.pl.create();
+
+    var c = session.consult(db);
+
+    if( c !== true )
+        throw {message: "parsing program '@0' => " + c.args[0]};
+
+    session.query(`@1`.replace(/[.]/g, "") + ".");
+
+    let rslt = false;
+
+    session.answer(e => {rslt = window.pl.format_answer( e );});
+
+    rslt == "true ;";
+</script>
+@end
 
 @tau_prolog
-```prolog
+```prolog @0
 @2
 ```
 @tau_prolog_program(@0)
 
 
-```prolog
+```prolog Anfrage:
 @1
 ```
 @tau_prolog_query(@0)
 @end
+
 
 -->
 
@@ -132,8 +225,7 @@ likes(sam, X).
 
 ## Full-Macro
 
-```prolog
-@tau_prolog(template2,`likes(sam, X).`)
+```prolog @tau_prolog(template2,`likes(sam, X).`)
 likes(sam, salad).
 likes(dean, pie).
 likes(sam, apples).
