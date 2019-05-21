@@ -5,7 +5,7 @@ version:  0.2.0
 language: en
 narrator: US English Female
 
-script:   https://cdn.jsdelivr.net/gh/LiaScript/tau-prolog_template/js/tau-prolog.min.js
+script:   https://cdn.jsdelivr.net/gh/LiaTemplates/Tau-Prolog/js/tau-prolog.min.js
 
 @Tau.program
 <script>
@@ -94,7 +94,7 @@ script:   https://cdn.jsdelivr.net/gh/LiaScript/tau-prolog_template/js/tau-prolo
 
 -->
 
-# Tau-Prolog template
+# Tau-Prolog - Template
 
 
                          --{{0}}--
@@ -105,11 +105,11 @@ executeable and editable.
 
 __Try it on LiaScript:__
 
-https://liascript.github.io/course/?https://raw.githubusercontent.com/liaScript/tau-prolog_template/master/README.md
+https://liascript.github.io/course/?https://raw.githubusercontent.com/liaTemplates/tau-prolog/master/README.md
 
 __See the project on Github:__
 
-https://github.com/liaScript/tau-prolog_template
+https://github.com/liaTemplates/tau-prolog
 
                          --{{1}}--
 There are three ways to use this template. The easiest way is to use the
@@ -122,7 +122,7 @@ it, as you wish.
   {{1}}
 1. Load the macros via
 
-   `import: https://raw.githubusercontent.com/liaScript/tau-prolog_template/master/README.md`
+   `import: https://raw.githubusercontent.com/liaTemplates/tau-prolog/master/README.md`
 
 2. Copy the definitions into your Project
 
@@ -190,10 +190,10 @@ goes_to(frederike,france).
 
                          --{{1}}--
 Thus, on
-[LiaScript](https://liascript.github.io/course/?https://raw.githubusercontent.com/liaScript/tau-prolog_template/master/README.md#4)
+[LiaScript](https://liascript.github.io/course/?https://raw.githubusercontent.com/liaTemplates/tau-prolog/master/README.md#4)
 you should see two executable code-blocks and on
-[Github](https://github.com/liaScript/tau-prolog_template) you should at least
-see a code-block with prolog syntax higlighting.
+[Github](https://github.com/liaTemplates/tau-prolog) you should at least see a
+code-block with prolog syntax higlighting.
 
                            {{1}}
 ```prolog @Tau(holiday.pro,`% goes_to(Who, france).`)
@@ -260,7 +260,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
 
 
 ````html
-script: https://cdn.jsdelivr.net/gh/LiaScript/tau-prolog_template/js/tau-prolog.min.js
+script: https://cdn.jsdelivr.net/gh/LiaTemplates/Tau-Prolog/js/tau-prolog.min.js
 
 @Tau.program
 <script>
@@ -353,4 +353,4 @@ If you want to minimize loading effort in your LiaScript project, you can also
 copy this code and paste it into your main comment header, see the code in the
 raw file of this document.
 
-{{1}} https://raw.githubusercontent.com/liaScript/tau-prolog_template/master/README.md
+{{1}} https://raw.githubusercontent.com/liaTemplates/tau-prolog/master/README.md
