@@ -1,11 +1,21 @@
 <!--
-author:   Andre Dietrich
-email:    andre.dietrich@ovgu.de
-version:  0.2.0
-language: en
-narrator: US English Female
+author:    Andre Dietrich
+email:     andre.dietrich@ovgu.de
+version:   0.2.1
+language:  en
+narrator:  US English Female
 
-script:   https://cdn.jsdelivr.net/gh/LiaTemplates/Tau-Prolog/js/tau-prolog.min.js
+script:    https://cdn.jsdelivr.net/gh/LiaTemplates/Tau-Prolog/js/tau-prolog.min.js
+
+logo:      http://tau-prolog.org/logo/tauprolog256.png
+
+comment:   Template for integrating the [Tau-Prolog](http://tau-prolog.org/)
+           interpreter, which runs on JavaScript, into LiaScript courses.
+
+attribute: [Tau-Prolog](http://tau-prolog.org/)
+           by [José Antonio Riaza Valverde](http://jariaza.es)
+           is licensed under [BSD-3 Clause](http://tau-prolog.org/license)
+
 
 @Tau.program
 <script>
