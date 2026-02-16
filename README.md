@@ -50,6 +50,19 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
   var query = `@input`;
   
   try {
+    // Create a new output buffer for this query execution
+    var output_buffer = "";
+    var custom_output = {
+      put: function(text, stream) {
+        output_buffer += text;
+        return true;
+      },
+      flush: function() { return true; }
+    };
+    
+    // Override the session's user_output stream
+    window['@0']['session'].streams['user_output'].stream = custom_output;
+    
     if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
       window['@0']['query_str'] = query;
       window['@0']['query'] = null;
@@ -62,19 +75,23 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
           window['@0']['session'].answer({
             success: function(answer) {
               window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             fail: function() {
               window['@0']['rslt'] += "false.\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             error: function(err) {
               var c_err = window.pl.flatten_error(err);
               window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             limit: function() {
               window['@0']['rslt'] += "Limit exceeded.\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             }
           });
@@ -91,19 +108,23 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
       window['@0']['session'].answer({
         success: function(answer) {
           window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         fail: function() {
           window['@0']['rslt'] += "false.\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         error: function(err) {
           var c_err = window.pl.flatten_error(err);
           window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         limit: function() {
           window['@0']['rslt'] += "Limit exceeded.\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         }
       });
@@ -353,6 +374,19 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
   var query = `@input`;
   
   try {
+    // Create a new output buffer for this query execution
+    var output_buffer = "";
+    var custom_output = {
+      put: function(text, stream) {
+        output_buffer += text;
+        return true;
+      },
+      flush: function() { return true; }
+    };
+    
+    // Override the session's user_output stream
+    window['@0']['session'].streams['user_output'].stream = custom_output;
+    
     if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
       window['@0']['query_str'] = query;
       window['@0']['query'] = null;
@@ -365,19 +399,23 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
           window['@0']['session'].answer({
             success: function(answer) {
               window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             fail: function() {
               window['@0']['rslt'] += "false.\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             error: function(err) {
               var c_err = window.pl.flatten_error(err);
               window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             limit: function() {
               window['@0']['rslt'] += "Limit exceeded.\n";
+              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             }
           });
@@ -394,19 +432,23 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
       window['@0']['session'].answer({
         success: function(answer) {
           window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         fail: function() {
           window['@0']['rslt'] += "false.\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         error: function(err) {
           var c_err = window.pl.flatten_error(err);
           window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         limit: function() {
           window['@0']['rslt'] += "Limit exceeded.\n";
+          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         }
       });
