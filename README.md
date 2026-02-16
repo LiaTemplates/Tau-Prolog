@@ -5,7 +5,7 @@ version:   0.2.1
 language:  en
 narrator:  US English Female
 
-script:    https://cdn.jsdelivr.net/gh/LiaTemplates/Tau-Prolog/js/tau-prolog.min.js
+script:    js/tau-prolog.js
 
 logo:      http://tau-prolog.org/logo/tauprolog256.png
 
@@ -27,45 +27,93 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
     query_str: "",
     db: db
   };
-  var c = window['@0']['session'].consult(db);
-
-  if( c !== true ){
-    var err = new LiaError("parsing program '@0' => " + c.args[0], 1);
-    var c_err = window.pl.flatten_error(c);
-    err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
-    throw err;
-  }
-  else
-    "database '@0' loaded";
+  
+  var result = null;
+  window['@0']['session'].consult(db, {
+    success: function() {
+      result = "database '@0' loaded";
+    },
+    error: function(err) {
+      var c_err = window.pl.flatten_error(err);
+      var error = new LiaError("parsing program '@0' => " + err.args[0], 1);
+      error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+      throw error;
+    }
+  });
+  
+  result;
 </script>
 @end
 
 @Tau.query
 <script>
   var query = `@input`;
+  
   try {
     if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
       window['@0']['query_str'] = query;
-      window['@0']['rslt'] = "";
-      window['@0']['query'] = window['@0']['session'].query(query);
+      window['@0']['query'] = null;
+      window['@0']['rslt'] = ""; // Reset results for new query
+      
+      window['@0']['session'].query(query, {
+        success: function(goal) {
+          window['@0']['query'] = goal;
+          // Get answer immediately after successful query
+          window['@0']['session'].answer({
+            success: function(answer) {
+              window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
+              send.lia(window['@0']['rslt'].trim());
+            },
+            fail: function() {
+              window['@0']['rslt'] += "false.\n";
+              send.lia(window['@0']['rslt'].trim());
+            },
+            error: function(err) {
+              var c_err = window.pl.flatten_error(err);
+              window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+              send.lia(window['@0']['rslt'].trim());
+            },
+            limit: function() {
+              window['@0']['rslt'] += "Limit exceeded.\n";
+              send.lia(window['@0']['rslt'].trim());
+            }
+          });
+        },
+        error: function(err) {
+          var c_err = window.pl.flatten_error(err);
+          var error = new LiaError("parsing query for '@0' => " + err.args[0], 1);
+          error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+          throw error;
+        }
+      });
+    } else {
+      // Query already executed, get next answer
+      window['@0']['session'].answer({
+        success: function(answer) {
+          window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
+          send.lia(window['@0']['rslt'].trim());
+        },
+        fail: function() {
+          window['@0']['rslt'] += "false.\n";
+          send.lia(window['@0']['rslt'].trim());
+        },
+        error: function(err) {
+          var c_err = window.pl.flatten_error(err);
+          window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+          send.lia(window['@0']['rslt'].trim());
+        },
+        limit: function() {
+          window['@0']['rslt'] += "Limit exceeded.\n";
+          send.lia(window['@0']['rslt'].trim());
+        }
+      });
     }
   }
   catch(e) {
     throw {message: "'@0' has not been consulted"};
   }
-  if( window['@0']['query'] !== true ) {
-    //throw {message: "parsing query for '@0' => " + window['@0']['query'].args[0]};
-    var err = new LiaError("parsing query for '@0' => " + window['@0']['query'].args[0], 1);
-    var c_err = window.pl.flatten_error(window['@0']['query']);
-    err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
-    throw err;
-  }
-  else {
-    window['@0']['session'].answer(e => {
-      window['@0']['rslt'] +=  window.pl.format_answer(e)+"\n";
-    });
-    window['@0']['rslt'];
-  }
+  
+  "LIA: wait";
 </script>
 @end
 
@@ -79,12 +127,31 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
     throw {message: "'@0' has not been consulted"};
   }
   var session = window.pl.create();
-  var c = session.consult(db);
-  if( c !== true )
-    throw {message: "parsing program '@0' => " + c.args[0]};
-  session.query(`@1`.replace(/[.]/g, "") + ".");
-  let rslt = false;
-  session.answer(e => {rslt = window.pl.format_answer( e );});
+  var rslt = false;
+  
+  session.consult(db, {
+    success: function() {
+      session.query(`@1`.replace(/[.]/g, "") + ".", {
+        success: function(goal) {
+          session.answer({
+            success: function(answer) {
+              rslt = window.pl.format_answer(answer);
+            },
+            fail: function() {},
+            error: function(err) {},
+            limit: function() {}
+          });
+        },
+        error: function(err) {
+          throw {message: "parsing query for '@0' => " + err.args[0]};
+        }
+      });
+    },
+    error: function(err) {
+      throw {message: "parsing program '@0' => " + err.args[0]};
+    }
+  });
+  
   rslt == "true ;";
 </script>
 @end
@@ -269,58 +336,81 @@ Since [rawgit](https://raw.githubusercontent.com) is going to stop its service,
 I recommend [jsDelivr](https://www.jsdelivr.com).
 
 
-````html
-script: https://cdn.jsdelivr.net/gh/LiaTemplates/Tau-Prolog/js/tau-prolog.min.js
-
-@Tau.program
-<script>
-  var db = `@input`;
-  window['@0'] = {
-    session: window.pl.create(),
-    query: null,
-    rslt: "",
-    query_str: "",
-    db: db
-  };
-  var c = window['@0']['session'].consult(db);
-
-  if( c !== true ){
-    var err = new LiaError("parsing program '@0' => " + c.args[0], 1);
-    var c_err = window.pl.flatten_error(c);
-    err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
-    throw err;
-  }
-  else
-    "database '@0' loaded";
+  });
+  
+  result;
 </script>
 @end
 
 @Tau.query
 <script>
   var query = `@input`;
+  
   try {
     if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
       window['@0']['query_str'] = query;
-      window['@0']['rslt'] = "";
-      window['@0']['query'] = window['@0']['session'].query(query);
+      window['@0']['query'] = null;
+      window['@0']['rslt'] = ""; // Reset results for new query
+      
+      window['@0']['session'].query(query, {
+        success: function(goal) {
+          window['@0']['query'] = goal;
+          // Get answer immediately after successful query
+          window['@0']['session'].answer({
+            success: function(answer) {
+              window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
+              send.lia(window['@0']['rslt'].trim());
+            },
+            fail: function() {
+              window['@0']['rslt'] += "false.\n";
+              send.lia(window['@0']['rslt'].trim());
+            },
+            error: function(err) {
+              var c_err = window.pl.flatten_error(err);
+              window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+              send.lia(window['@0']['rslt'].trim());
+            },
+            limit: function() {
+              window['@0']['rslt'] += "Limit exceeded.\n";
+              send.lia(window['@0']['rslt'].trim());
+            }
+          });
+        },
+        error: function(err) {
+          var c_err = window.pl.flatten_error(err);
+          var error = new LiaError("parsing query for '@0' => " + err.args[0], 1);
+          error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+          throw error;
+        }
+      });
+    } else {
+      // Query already executed, get next answer
+      window['@0']['session'].answer({
+        success: function(answer) {
+          window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
+          send.lia(window['@0']['rslt'].trim());
+        },
+        fail: function() {
+          window['@0']['rslt'] += "false.\n";
+          send.lia(window['@0']['rslt'].trim());
+        },
+        error: function(err) {
+          var c_err = window.pl.flatten_error(err);
+          window['@0']['rslt'] += "Error: " + c_err.type + "\n";
+          send.lia(window['@0']['rslt'].trim());
+        },
+        limit: function() {
+          window['@0']['rslt'] += "Limit exceeded.\n";
+          send.lia(window['@0']['rslt'].trim());
+        }
+      });
     }
   }
   catch(e) {
     throw {message: "'@0' has not been consulted"};
   }
-  if( window['@0']['query'] !== true ) {
-    //throw {message: "parsing query for '@0' => " + window['@0']['query'].args[0]};
-    var err = new LiaError("parsing query for '@0' => " + window['@0']['query'].args[0], 1);
-    var c_err = window.pl.flatten_error(window['@0']['query']);
-    err.add_detail(0, c_err.type+" => " + c_err.found + "; expected => " +c_err.expected, "error", c_err.line - 1, c_err.column);
-    throw err;
-  }
-  else {
-    window['@0']['session'].answer(e => {
-      window['@0']['rslt'] +=  window.pl.format_answer(e)+"\n";
-    });
-    window['@0']['rslt'];
-  }
+  
+  "LIA: wait";
 </script>
 @end
 
@@ -334,12 +424,31 @@ script: https://cdn.jsdelivr.net/gh/LiaTemplates/Tau-Prolog/js/tau-prolog.min.js
     throw {message: "'@0' has not been consulted"};
   }
   var session = window.pl.create();
-  var c = session.consult(db);
-  if( c !== true )
-    throw {message: "parsing program '@0' => " + c.args[0]};
-  session.query(`@1`.replace(/[.]/g, "") + ".");
-  let rslt = false;
-  session.answer(e => {rslt = window.pl.format_answer( e );});
+  var rslt = false;
+  
+  session.consult(db, {
+    success: function() {
+      session.query(`@1`.replace(/[.]/g, "") + ".", {
+        success: function(goal) {
+          session.answer({
+            success: function(answer) {
+              rslt = window.pl.format_answer(answer);
+            },
+            fail: function() {},
+            error: function(err) {},
+            limit: function() {}
+          });
+        },
+        error: function(err) {
+          throw {message: "parsing query for '@0' => " + err.args[0]};
+        }
+      });
+    },
+    error: function(err) {
+      throw {message: "parsing program '@0' => " + err.args[0]};
+    }
+  });
+  
   rslt == "true ;";
 </script>
 @end
