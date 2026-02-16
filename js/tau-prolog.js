@@ -12839,7 +12839,6 @@
     window.pl = pl
   }
 })()
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var predicates = function () {
     return {
@@ -14885,7 +14884,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module('lists', predicates(), exports, options())
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var predicates = function () {
     return {
@@ -15164,7 +15162,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module('random', predicates(), exports)
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var predicates = function () {
     return {
@@ -15336,7 +15333,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module('statistics', predicates(), exports)
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var predicates = function () {
     return {
@@ -16880,7 +16876,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module('dom', predicates(), exports, options())
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var predicates = function () {
     return {
@@ -17717,7 +17712,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module('js', predicates(), exports)
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var predicates = function () {
     return {
@@ -18847,7 +18841,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module('os', predicates(), exports, options())
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var name = 'charsio'
   var predicates = function () {
@@ -19061,7 +19054,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module(name, predicates(), exports)
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var name = 'format'
   var predicates = function () {
@@ -22522,7 +22514,6 @@ var pl = typeof module !== 'undefined' ? module.exports : window.pl
     new pl.type.Module(name, predicates(), exports, options())
   }
 })(pl)
-var pl
 ;(function (pl) {
   // Extend Tau Prolog prototypes
   var extend = function (pl) {
@@ -22602,7 +22593,6 @@ var pl
     extend(pl)
   }
 })(pl)
-var pl = typeof module !== 'undefined' ? module.exports : window.pl
 ;(function (pl) {
   var FUTURE_PENDING = 0,
     FUTURE_FULFILLED = 1,

@@ -1,11 +1,11 @@
 <!--
 author:    Andre Dietrich
 email:     andre.dietrich@ovgu.de
-version:   0.2.1
+version:   0.3.0
 language:  en
 narrator:  US English Female
 
-script:    js/tau-prolog.js
+script:    js/tau-prolog.min.js
 
 logo:      http://tau-prolog.org/logo/tauprolog256.png
 
@@ -233,7 +233,7 @@ it, as you wish.
 3. Clone this repository on GitHub
 
 
-## `Tau.program/query`
+## `@Tau.program/query`
 
                          --{{0}}--
 To use the [Tau-Prolog](http://tau-prolog.org) interpreter, two macros are
@@ -271,7 +271,50 @@ blue(Flower).
 ```
 @Tau.query(bouquet.pro)
 
-## `Tau`
+### `use_module`
+
+                         --{{0}}--
+Tau-Prolog includes several library modules that extend its functionality. You
+can load modules using the `use_module/1` directive. The `library(lists)` provides
+common list manipulation predicates.
+
+                         --{{1}}--
+You can also use `library(lists)` for common list operations like `append/3`,
+`member/2`, `reverse/2`, and `length/2`.
+
+                           {{1}}
+```prolog lists_demo.pro
+:- use_module(library(lists)).
+
+combine_lists(L1, L2, Result) :-
+    append(L1, L2, Result).
+
+list_length(List, N) :-
+    length(List, N).
+```
+@Tau.program(lists_demo.pro)
+
+                         --{{2}}--
+Now you can query the list operations. The `append/3` predicate concatenates
+two lists, and `length/2` determines the length of a list.
+
+                           {{2}}
+```prolog
+combine_lists([1,2,3], [4,5,6], Result).
+```
+@Tau.query(lists_demo.pro)
+
+                         --{{3}}--
+You can also check if an element is a member of a list using the `member/2`
+predicate from the lists module.
+
+                           {{3}}
+```prolog
+member(X, [apple, banana, cherry]).
+```
+@Tau.query(lists_demo.pro)
+
+## `@Tau`
 
                          --{{0}}--
 If you want to use the previous macros in combination, by creating the program
@@ -310,7 +353,7 @@ goes_to(elmar,france).
 goes_to(frederike,france).
 ```
 
-## `Tau.check`
+## `@Tau.check`
 
                          --{{0}}--
 You can use `@Tau.check` to check the input of a text quiz input for example.
@@ -362,7 +405,29 @@ this library, you will have to change the url.
 Since [rawgit](https://raw.githubusercontent.com) is going to stop its service,
 I recommend [jsDelivr](https://www.jsdelivr.com).
 
-
+`````` markdown
+@Tau.program
+<script>
+  var db = `@input`;
+  window['@0'] = {
+    session: window.pl.create(),
+    query: null,
+    rslt: "",
+    query_str: "",
+    db: db
+  };
+  
+  var result = null;
+  window['@0']['session'].consult(db, {
+    success: function() {
+      result = "database '@0' loaded";
+    },
+    error: function(err) {
+      var c_err = window.pl.flatten_error(err);
+      var error = new LiaError("parsing program '@0' => " + err.args[0], 1);
+      error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+      throw error;
+    }
   });
   
   result;
@@ -399,7 +464,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
           window['@0']['session'].answer({
             success: function(answer) {
               if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
+              window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
               send.lia(window['@0']['rslt'].trim());
             },
             fail: function() {
@@ -432,7 +497,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
       window['@0']['session'].answer({
         success: function(answer) {
           if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
+          window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
           send.lia(window['@0']['rslt'].trim());
         },
         fail: function() {
@@ -480,16 +545,16 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
           session.answer({
             success: function(answer) {
               var rslt = window.pl.format_answer(answer);
-              send.lia(rslt == "true ;");
+              send.lia(rslt);
             },
             fail: function() {
-              send.lia(false);
+              send.lia("false");
             },
             error: function(err) {
-              send.lia(false);
+              send.lia(err.message);
             },
             limit: function() {
-              send.lia(false);
+              send.lia("false");
             }
           });
         },
@@ -519,8 +584,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
 ```
 @Tau.query(@0)
 @end
-````
-
+``````
                          --{{1}}--
 If you want to minimize loading effort in your LiaScript project, you can also
 copy this code and paste it into your main comment header, see the code in the
