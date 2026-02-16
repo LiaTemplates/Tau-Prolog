@@ -1,7 +1,7 @@
 <!--
 author:    Andre Dietrich
 email:     andre.dietrich@ovgu.de
-version:   0.3.0
+version:   0.3.1
 language:  en
 narrator:  US English Female
 
@@ -11,6 +11,8 @@ logo:      http://tau-prolog.org/logo/tauprolog256.png
 
 comment:   Template for integrating the [Tau-Prolog](http://tau-prolog.org/)
            interpreter, which runs on JavaScript, into LiaScript courses.
+           Includes macros for loading programs, querying, appending rules,
+           and checking quiz answers.
 
 attribute: [Tau-Prolog](http://tau-prolog.org/)
            by [José Antonio Riaza Valverde](http://jariaza.es)
@@ -36,6 +38,39 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
     error: function(err) {
       var c_err = window.pl.flatten_error(err);
       var error = new LiaError("parsing program '@0' => " + err.args[0], 1);
+      error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+      throw error;
+    }
+  });
+  
+  result;
+</script>
+@end
+
+@Tau.program_append
+<script>
+  var additional_db = `@input`;
+  
+  try {
+    var session = window['@0']['session'];
+    if (!session) {
+      throw {message: "'@0' has not been initialized. Use @Tau.program first."};
+    }
+  }
+  catch(e) {
+    throw {message: "'@0' has not been consulted. Use @Tau.program first."};
+  }
+  
+  var result = null;
+  session.consult(additional_db, {
+    success: function() {
+      // Append to stored database for @Tau.check compatibility
+      window['@0']['db'] += "\n" + additional_db;
+      result = "additional rules appended to '@0'";
+    },
+    error: function(err) {
+      var c_err = window.pl.flatten_error(err);
+      var error = new LiaError("parsing additional program for '@0' => " + err.args[0], 1);
       error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
       throw error;
     }
@@ -314,6 +349,73 @@ member(X, [apple, banana, cherry]).
 ```
 @Tau.query(lists_demo.pro)
 
+## `@Tau.program_append`
+
+                         --{{0}}--
+Sometimes you want to add additional rules or facts to an existing Prolog
+database without creating a new session. The `@Tau.program_append` macro allows
+you to append code to an already loaded program. This is useful for incrementally
+building up a knowledge base or adding new rules based on previous definitions.
+
+```prolog animals.pro
+% Basic animal facts
+animal(cat).
+animal(dog).
+animal(bird).
+
+% Initial classification
+mammal(cat).
+mammal(dog).
+```
+@Tau.program(animals.pro)
+
+                         --{{1}}--
+After loading the initial program, you can query it to see the basic facts.
+
+                           {{1}}
+```prolog
+animal(X).
+```
+@Tau.query(animals.pro)
+
+                         --{{2}}--
+Now we can append additional rules to the same session using `@Tau.program_append`.
+This adds new facts and rules without replacing the existing database.
+
+                           {{2}}
+```prolog
+% Add more animals
+animal(fish).
+animal(snake).
+
+% Add more classifications
+can_fly(bird).
+can_swim(fish).
+
+% Add a rule based on existing facts
+pet(X) :- mammal(X).
+```
+@Tau.program_append(animals.pro)
+
+                         --{{3}}--
+The appended code is now part of the session. You can query both old and new
+predicates together.
+
+                           {{3}}
+```prolog
+pet(X).
+```
+@Tau.query(animals.pro)
+
+                         --{{4}}--
+You can also query the newly added predicates.
+
+                           {{4}}
+```prolog
+can_fly(X).
+```
+@Tau.query(animals.pro)
+
 ## `@Tau`
 
                          --{{0}}--
@@ -425,6 +527,39 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
     error: function(err) {
       var c_err = window.pl.flatten_error(err);
       var error = new LiaError("parsing program '@0' => " + err.args[0], 1);
+      error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+      throw error;
+    }
+  });
+  
+  result;
+</script>
+@end
+
+@Tau.program_append
+<script>
+  var additional_db = `@input`;
+  
+  try {
+    var session = window['@0']['session'];
+    if (!session) {
+      throw {message: "'@0' has not been initialized. Use @Tau.program first."};
+    }
+  }
+  catch(e) {
+    throw {message: "'@0' has not been consulted. Use @Tau.program first."};
+  }
+  
+  var result = null;
+  session.consult(additional_db, {
+    success: function() {
+      // Append to stored database for @Tau.check compatibility
+      window['@0']['db'] += "\n" + additional_db;
+      result = "additional rules appended to '@0'";
+    },
+    error: function(err) {
+      var c_err = window.pl.flatten_error(err);
+      var error = new LiaError("parsing additional program for '@0' => " + err.args[0], 1);
       error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
       throw error;
     }
