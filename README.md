@@ -127,7 +127,6 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
     throw {message: "'@0' has not been consulted"};
   }
   var session = window.pl.create();
-  var rslt = false;
   
   session.consult(db, {
     success: function() {
@@ -135,11 +134,18 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
         success: function(goal) {
           session.answer({
             success: function(answer) {
-              rslt = window.pl.format_answer(answer);
+              var rslt = window.pl.format_answer(answer);
+              send.lia(rslt);
             },
-            fail: function() {},
-            error: function(err) {},
-            limit: function() {}
+            fail: function() {
+              send.lia("false");
+            },
+            error: function(err) {
+              send.lia(err.message);
+            },
+            limit: function() {
+              send.lia("false");
+            }
           });
         },
         error: function(err) {
@@ -152,7 +158,7 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
     }
   });
   
-  rslt == "true ;";
+  "LIA: wait";
 </script>
 @end
 
@@ -424,7 +430,6 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
     throw {message: "'@0' has not been consulted"};
   }
   var session = window.pl.create();
-  var rslt = false;
   
   session.consult(db, {
     success: function() {
@@ -432,11 +437,18 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
         success: function(goal) {
           session.answer({
             success: function(answer) {
-              rslt = window.pl.format_answer(answer);
+              var rslt = window.pl.format_answer(answer);
+              send.lia(rslt == "true ;");
             },
-            fail: function() {},
-            error: function(err) {},
-            limit: function() {}
+            fail: function() {
+              send.lia(false);
+            },
+            error: function(err) {
+              send.lia(false);
+            },
+            limit: function() {
+              send.lia(false);
+            }
           });
         },
         error: function(err) {
@@ -449,7 +461,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
     }
   });
   
-  rslt == "true ;";
+  "LIA: wait";
 </script>
 @end
 

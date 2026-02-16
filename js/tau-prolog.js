@@ -8933,7 +8933,7 @@
                 return
               }
             }
-            group = new Term('[]', [])
+            var group = new Term('[]', [])
             for (var i = keys.length - 1; i >= 0; i--)
               group = new Term('.', [
                 new Term('-', [keys[i], arrayToList(values[i])]),
