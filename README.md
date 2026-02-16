@@ -74,24 +74,24 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
           // Get answer immediately after successful query
           window['@0']['session'].answer({
             success: function(answer) {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             fail: function() {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               window['@0']['rslt'] += "false.\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             error: function(err) {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               var c_err = window.pl.flatten_error(err);
               window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             limit: function() {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               window['@0']['rslt'] += "Limit exceeded.\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             }
           });
@@ -107,24 +107,24 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
       // Query already executed, get next answer
       window['@0']['session'].answer({
         success: function(answer) {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         fail: function() {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           window['@0']['rslt'] += "false.\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         error: function(err) {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           var c_err = window.pl.flatten_error(err);
           window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         limit: function() {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           window['@0']['rslt'] += "Limit exceeded.\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         }
       });
@@ -398,24 +398,24 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
           // Get answer immediately after successful query
           window['@0']['session'].answer({
             success: function(answer) {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             fail: function() {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               window['@0']['rslt'] += "false.\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             error: function(err) {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               var c_err = window.pl.flatten_error(err);
               window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             },
             limit: function() {
+              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
               window['@0']['rslt'] += "Limit exceeded.\n";
-              if(output_buffer) window['@0']['rslt'] += output_buffer;
               send.lia(window['@0']['rslt'].trim());
             }
           });
@@ -431,24 +431,24 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
       // Query already executed, get next answer
       window['@0']['session'].answer({
         success: function(answer) {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           window['@0']['rslt'] += window.pl.format_answer(answer) + "\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         fail: function() {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           window['@0']['rslt'] += "false.\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         error: function(err) {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           var c_err = window.pl.flatten_error(err);
           window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         },
         limit: function() {
+          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
           window['@0']['rslt'] += "Limit exceeded.\n";
-          if(output_buffer) window['@0']['rslt'] += output_buffer;
           send.lia(window['@0']['rslt'].trim());
         }
       });
