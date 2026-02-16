@@ -21,7 +21,7 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
 
 @Tau.program
 <script>
-  var db = `@input`;
+  var db = `@'input`;
   window['@0'] = {
     session: window.pl.create(),
     query: null,
@@ -49,7 +49,7 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
 
 @Tau.program_append
 <script>
-  var additional_db = `@input`;
+  var additional_db = `@'input`;
   
   try {
     var session = window['@0']['session'];
@@ -82,7 +82,7 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
 
 @Tau.query
 <script>
-  var query = `@input`;
+  var query = `@'input`;
   
   try {
     // Create a new output buffer for this query execution
@@ -496,7 +496,7 @@ parent(boris,ariadne).
 __Type in the Prolog-query for identifying the parents of barbara.__
 
     [[parent(barbara, X).]]
-@Tau.check(genealogy.pro,`setof(X, @input, [alfred, alwine])`)
+@Tau.check(genealogy.pro,`setof(X, @'input, [alfred, alwine])`)
 
 ## Implementation
 
@@ -510,7 +510,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
 `````` markdown
 @Tau.program
 <script>
-  var db = `@input`;
+  var db = `@'input`;
   window['@0'] = {
     session: window.pl.create(),
     query: null,
@@ -538,7 +538,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
 
 @Tau.program_append
 <script>
-  var additional_db = `@input`;
+  var additional_db = `@'input`;
   
   try {
     var session = window['@0']['session'];
@@ -571,7 +571,7 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
 
 @Tau.query
 <script>
-  var query = `@input`;
+  var query = `@'input`;
   
   try {
     // Create a new output buffer for this query execution
