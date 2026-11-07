@@ -1,7 +1,7 @@
 <!--
 author:    Andre Dietrich
 email:     andre.dietrich@ovgu.de
-version:   0.3.2
+version:   0.3.3
 language:  en
 narrator:  US English Female
 
