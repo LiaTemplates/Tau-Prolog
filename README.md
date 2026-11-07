@@ -62,6 +62,8 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
 
   var result = null;
   window['@0']['session'].consult(db, {
+    url: false,    // the program is text, never a URL or element id
+    script: false,
     success: function() {
       result = "database '@0' loaded";
       share_modules(window['@0']['session']);
@@ -94,6 +96,8 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
   
   var result = null;
   session.consult(additional_db, {
+    url: false,    // the program is text, never a URL or element id
+    script: false,
     success: function() {
       // Append to stored database for @Tau.check compatibility
       window['@0']['db'] += "\n" + additional_db;
@@ -216,6 +220,8 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
   var session = window.pl.create();
   
   session.consult(db, {
+    url: false,    // the program is text, never a URL or element id
+    script: false,
     success: function() {
       session.query(`@1`.replace(/[.]/g, "") + ".", {
         success: function(goal) {
@@ -342,7 +348,10 @@ blue(Flower).
                          --{{0}}--
 Tau-Prolog includes several library modules that extend its functionality. You
 can load them with the `use_module/1` directive, for example
-`:- use_module(library(lists)).` All of them are part of this template.
+`:- use_module(library(random)).` All of them are part of this template.
+As in SWI-Prolog, `lists` is always loaded, and `not/1` works as another name
+for `\+`. If your program defines its own `append/3` or `not/1`, your
+definition is used.
 
 | Module       | Predicates (selection)                                                                 |
 | ------------ | -------------------------------------------------------------------------------------- |
@@ -358,7 +367,7 @@ can load them with the `use_module/1` directive, for example
 
                          --{{1}}--
 The `library(lists)` provides common list operations like `append/3`,
-`member/2`, `reverse/2`, and `length/2`.
+`member/2`, `reverse/2`, and `length/2`. Loading it explicitly is optional.
 
                            {{1}}
 ```prolog lists_demo.pro
@@ -392,6 +401,15 @@ member(X, [apple, banana, cherry]).
 ```
 @Tau.query(lists_demo.pro)
 
+                         --{{4}}--
+`not/1` succeeds if its goal cannot be proven. It is the same as `\+`.
+
+                           {{4}}
+```prolog
+not(member(kiwi, [apple, banana, cherry])).
+```
+@Tau.query(lists_demo.pro)
+
 ### Own modules
 
                          --{{0}}--
@@ -413,8 +431,8 @@ mean(List, Mean) :-
 @Tau.program(stats.pro)
 
                          --{{1}}--
-This program loads the module `stats` and uses its predicate `mean/2`. The
-predicates of `lists`, which `stats` uses internally, are not visible here.
+This program loads the module `stats` and uses its predicate `mean/2`. Only
+the exported predicates of `stats` are visible here.
 
                            {{1}}
 ```prolog grades.pro
@@ -736,6 +754,8 @@ and `npm run build` to rebuild it.
 
   var result = null;
   window['@0']['session'].consult(db, {
+    url: false,    // the program is text, never a URL or element id
+    script: false,
     success: function() {
       result = "database '@0' loaded";
       share_modules(window['@0']['session']);
@@ -768,6 +788,8 @@ and `npm run build` to rebuild it.
   
   var result = null;
   session.consult(additional_db, {
+    url: false,    // the program is text, never a URL or element id
+    script: false,
     success: function() {
       // Append to stored database for @Tau.check compatibility
       window['@0']['db'] += "\n" + additional_db;
@@ -890,6 +912,8 @@ and `npm run build` to rebuild it.
   var session = window.pl.create();
   
   session.consult(db, {
+    url: false,    // the program is text, never a URL or element id
+    script: false,
     success: function() {
       session.query(`@1`.replace(/[.]/g, "") + ".", {
         success: function(goal) {
