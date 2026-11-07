@@ -1,0 +1,30 @@
+{
+  "name": "lia-tau-prolog",
+  "version": "0.3.2",
+  "description": "LiaScript template for the Tau-Prolog interpreter",
+  "private": true,
+  "app": "dist/index.js",
+  "targets": {
+    "app": {
+      "context": "browser",
+      "includeNodeModules": true
+    }
+  },
+  "alias": {
+    "fs": false,
+    "path": false,
+    "readline-sync": false
+  },
+  "scripts": {
+    "build": "parcel build src/index.js --no-source-maps",
+    "postinstall": "patch-package"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "parcel": "^2.16.4",
+    "patch-package": "^8.0.1",
+    "process": "^0.11.10",
+    "tau-prolog": "github:tau-prolog/tau-prolog#5bd606a255910d8e34ff1d721e80969af294b64c"
+  },
+  "license": "BSD-3-Clause"
+}

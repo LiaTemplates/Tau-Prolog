@@ -1,11 +1,11 @@
 <!--
 author:    Andre Dietrich
 email:     andre.dietrich@ovgu.de
-version:   0.3.1
+version:   0.3.2
 language:  en
 narrator:  US English Female
 
-script:    js/tau-prolog.min.js
+script:    dist/index.js
 
 logo:      http://tau-prolog.org/logo/tauprolog256.png
 
@@ -30,10 +30,41 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
     db: db
   };
   
+  // Modules defined with :- module(Name, Exports) become loadable in every
+  // other program via :- use_module(library(Name)). Built-in libraries stay.
+  function share_modules(session) {
+    var pl = window.pl;
+    var own = pl.lia_user_modules = pl.lia_user_modules || {};
+    for (var name in session.modules) {
+      var mod = session.modules[name];
+      if (name === "user" || name === "system" || mod.is_library || mod.lia_imported) continue;
+      if (pl.modules.hasOwnProperty(name) && !own[name]) continue;
+      own[name] = true;
+      (function(name, mod) {
+        var deps = Object.keys(mod.modules).filter(function(k) {
+          return k !== "user" && k !== "system" && pl.modules.hasOwnProperty(k);
+        });
+        // every importing program gets its own view of the module
+        Object.defineProperty(pl.modules, name, {
+          configurable: true,
+          enumerable: true,
+          get: function() {
+            var copy = Object.create(mod);
+            copy.modules = {};
+            copy.dependencies = deps;
+            copy.lia_imported = true;
+            return copy;
+          }
+        });
+      })(name, mod);
+    }
+  }
+
   var result = null;
   window['@0']['session'].consult(db, {
     success: function() {
       result = "database '@0' loaded";
+      share_modules(window['@0']['session']);
     },
     error: function(err) {
       var c_err = window.pl.flatten_error(err);
@@ -80,95 +111,95 @@ attribute: [Tau-Prolog](http://tau-prolog.org/)
 </script>
 @end
 
-@Tau.query
+@Tau.query: @Tau.run_(@0,false)
+
+@Tau.trace: @Tau.run_(@0,true)
+
+@Tau.run_
 <script>
   var query = `@'input`;
-  
-  try {
-    // Create a new output buffer for this query execution
-    var output_buffer = "";
-    var custom_output = {
-      put: function(text, stream) {
-        output_buffer += text;
-        return true;
-      },
-      flush: function() { return true; }
-    };
-    
-    // Override the session's user_output stream
-    window['@0']['session'].streams['user_output'].stream = custom_output;
-    
-    if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
-      window['@0']['query_str'] = query;
-      window['@0']['query'] = null;
-      window['@0']['rslt'] = ""; // Reset results for new query
-      
-      window['@0']['session'].query(query, {
-        success: function(goal) {
-          window['@0']['query'] = goal;
-          // Get answer immediately after successful query
-          window['@0']['session'].answer({
-            success: function(answer) {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
-              send.lia(window['@0']['rslt'].trim());
-            },
-            fail: function() {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              window['@0']['rslt'] += "false.\n";
-              send.lia(window['@0']['rslt'].trim());
-            },
-            error: function(err) {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              var c_err = window.pl.flatten_error(err);
-              window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-              send.lia(window['@0']['rslt'].trim());
-            },
-            limit: function() {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              window['@0']['rslt'] += "Limit exceeded.\n";
-              send.lia(window['@0']['rslt'].trim());
-            }
-          });
-        },
-        error: function(err) {
-          var c_err = window.pl.flatten_error(err);
-          var error = new LiaError("parsing query for '@0' => " + err.args[0], 1);
-          error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
-          throw error;
-        }
-      });
-    } else {
-      // Query already executed, get next answer
-      window['@0']['session'].answer({
-        success: function(answer) {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
-          send.lia(window['@0']['rslt'].trim());
-        },
-        fail: function() {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          window['@0']['rslt'] += "false.\n";
-          send.lia(window['@0']['rslt'].trim());
-        },
-        error: function(err) {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          var c_err = window.pl.flatten_error(err);
-          window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-          send.lia(window['@0']['rslt'].trim());
-        },
-        limit: function() {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          window['@0']['rslt'] += "Limit exceeded.\n";
-          send.lia(window['@0']['rslt'].trim());
-        }
-      });
+  var trace = @1;
+  var db = window['@0'];
+  if (!db || !db.session) {
+    throw {message: "'@0' has not been consulted. Use @Tau.program first."};
+  }
+  var session = db.session;
+  var thread = session.thread;
+
+  // collect write/1 output of this run
+  var output_buffer = "";
+  session.streams['user_output'].stream = {
+    put: function(text) { output_buffer += text; return true; },
+    flush: function() { return true; }
+  };
+
+  // print the resolution steps since the last answer to the console
+  function show_trace() {
+    var states = thread.debugger_states;
+    var max = 500;
+    for (; db.traced < states.length; db.traced++) {
+      var i = db.traced, state = states[i];
+      if (state.goal === null) continue;
+      if (i >= max) {
+        console.log("… " + (states.length - i) + " more steps not shown");
+        db.traced = Infinity;
+        break;
+      }
+      // show the query's own variable names instead of _1, _2, …
+      var names = {};
+      for (var name in state.substitution.links) {
+        var value = state.substitution.links[name];
+        if (window.pl.type.is_variable(value)) names[value.id] = new window.pl.type.Var(name);
+      }
+      var goal = state.goal.apply(new window.pl.type.Substitution(names));
+      var redo = i > 0 && state.parent !== states[i - 1];
+      console.log(String(i + 1).padStart(4) + (redo ? " ↩ " : "   ") + goal.toString({session: session, quoted: true}));
     }
   }
-  catch(e) {
-    throw {message: "'@0' has not been consulted"};
+
+  function finish(text) {
+    if (trace) {
+      show_trace();
+      console.log("     ⇒ " + text);
+    }
+    if (output_buffer) db.rslt += output_buffer + "\n";
+    db.rslt += text + "\n";
+    send.lia(db.rslt.trim());
   }
-  
+
+  var handlers = {
+    success: function(answer) { finish(window.pl.format_answer(answer) + "."); },
+    fail:    function() { finish("false."); },
+    error:   function(err) { finish("Error: " + window.pl.flatten_error(err).type); },
+    limit:   function() { finish("Limit exceeded."); }
+  };
+
+  thread.debugger = trace;
+  var key = (trace ? "trace:" : "query:") + query;
+
+  if (db.query == null || db.query_str != key) {
+    // new query: start over
+    db.query_str = key;
+    db.query = null;
+    db.rslt = "";
+    db.traced = 0;
+    session.query(query, {
+      success: function(goal) {
+        db.query = goal;
+        session.answer(handlers);
+      },
+      error: function(err) {
+        var c_err = window.pl.flatten_error(err);
+        var error = new LiaError("parsing query for '@0' => " + err.args[0], 1);
+        error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+        throw error;
+      }
+    });
+  } else {
+    // same query again: next answer
+    session.answer(handlers);
+  }
+
   "LIA: wait";
 </script>
 @end
@@ -310,11 +341,23 @@ blue(Flower).
 
                          --{{0}}--
 Tau-Prolog includes several library modules that extend its functionality. You
-can load modules using the `use_module/1` directive. The `library(lists)` provides
-common list manipulation predicates.
+can load them with the `use_module/1` directive, for example
+`:- use_module(library(lists)).` All of them are part of this template.
+
+| Module       | Predicates (selection)                                                                 |
+| ------------ | -------------------------------------------------------------------------------------- |
+| `lists`      | `append/3`, `member/2`, `length/2`, `reverse/2`, `nth0/3`, `sum_list/2`, `maplist/2-8` |
+| `random`     | `random/1`, `random_between/3`, `random_member/2`, `random_permutation/2`              |
+| `format`     | `format/2`, `format/3`                                                                 |
+| `statistics` | `time/1`, `statistics/0`, `statistics/2`                                               |
+| `charsio`    | `write_term_to_chars/3`                                                                |
+| `js`         | `global/1`, `prop/2`, `apply/3`, `json_prolog/2`, `ajax/3`                             |
+| `dom`        | `get_by_id/2`, `set_html/2`, `add_class/2`, `bind/4`                                   |
+| `os`         | `sleep/1`, `set_timeout/3`, `set_interval/3`                                           |
+| `concurrent` | `future/3`, `await/2`, `future_all/2`                                                  |
 
                          --{{1}}--
-You can also use `library(lists)` for common list operations like `append/3`,
+The `library(lists)` provides common list operations like `append/3`,
 `member/2`, `reverse/2`, and `length/2`.
 
                            {{1}}
@@ -348,6 +391,68 @@ predicate from the lists module.
 member(X, [apple, banana, cherry]).
 ```
 @Tau.query(lists_demo.pro)
+
+### Own modules
+
+                         --{{0}}--
+A program that starts with `:- module(Name, Exports).` defines its own module.
+Only the exported predicates are visible outside of it. Every other program
+can load it with `:- use_module(library(Name)).`, just like a built-in
+library. The program with the module has to be loaded first, so put it on the
+same slide or on an earlier one.
+
+```prolog stats.pro
+:- module(stats, [mean/2]).
+:- use_module(library(lists)).
+
+mean(List, Mean) :-
+    sum_list(List, Sum),
+    length(List, N),
+    Mean is Sum / N.
+```
+@Tau.program(stats.pro)
+
+                         --{{1}}--
+This program loads the module `stats` and uses its predicate `mean/2`. The
+predicates of `lists`, which `stats` uses internally, are not visible here.
+
+                           {{1}}
+```prolog grades.pro
+:- use_module(library(stats)).
+
+grades(ann, [1, 2, 2]).
+grades(bob, [3, 4]).
+
+average(Person, Mean) :-
+    grades(Person, List),
+    mean(List, Mean).
+```
+@Tau.program(grades.pro)
+
+                           {{1}}
+```prolog
+average(Person, Mean).
+```
+@Tau.query(grades.pro)
+
+                         --{{2}}--
+Modules can also be loaded from a URL. The file is fetched when the program is
+loaded. Use an absolute URL; relative paths are not resolved against the
+course.
+
+                           {{2}}
+```prolog shapes.pro
+:- use_module('https://raw.githubusercontent.com/liaTemplates/tau-prolog/master/examples/geometry.pl').
+
+larger(A, B) :- area(A, X), area(B, Y), X > Y.
+```
+@Tau.program(shapes.pro)
+
+                           {{2}}
+```prolog
+larger(circle(1), square(1.5)).
+```
+@Tau.query(shapes.pro)
 
 ## `@Tau.program_append`
 
@@ -415,6 +520,87 @@ You can also query the newly added predicates.
 can_fly(X).
 ```
 @Tau.query(animals.pro)
+
+## `@Tau.trace`
+
+                         --{{0}}--
+`@Tau.trace` works like `@Tau.query`, but it also shows every resolution step
+in the console below the code block. Each line lists the goals that are still
+open, and the variables of your query keep their names. A line marked with an
+arrow means that Prolog backtracked to try another clause. Run it again to get
+the next answer and the steps that lead to it.
+
+```prolog family.pro
+parent(tom, bob).
+parent(tom, liz).
+parent(bob, ann).
+parent(bob, pat).
+parent(pat, jim).
+
+grandparent(X, Z) :- parent(X, Y), parent(Y, Z).
+```
+@Tau.program(family.pro)
+
+                         --{{1}}--
+Who is a grandparent of ann? Watch how Prolog first finds tom and then, when
+you ask for more answers, tries the remaining parents one after another.
+
+                           {{1}}
+```prolog
+grandparent(X, ann).
+```
+@Tau.trace(family.pro)
+
+                         --{{2}}--
+The trace also shows how arithmetic is evaluated step by step, and how the
+recursion builds up and is resolved again.
+
+                           {{2}}
+```prolog factorial.pro
+factorial(0, 1).
+factorial(N, F) :-
+    N > 0,
+    N1 is N - 1,
+    factorial(N1, F1),
+    F is N * F1.
+```
+@Tau.program(factorial.pro)
+
+                           {{2}}
+```prolog
+factorial(3, F).
+```
+@Tau.trace(factorial.pro)
+
+### Tracing with `write/1`
+
+                         --{{0}}--
+For your own trace messages, you can use the built-in `write/1` and `nl/0`
+predicates directly in your rules. Their output is shown together with the
+answer.
+
+```prolog trace_example.pro
+factorial(0, 1) :-
+    write('Base case: 0! = 1'), nl.
+factorial(N, F) :-
+    N > 0,
+    write('Computing '), write(N), write('!'), nl,
+    N1 is N - 1,
+    factorial(N1, F1),
+    F is N * F1,
+    write('Result: '), write(N), write('! = '), write(F), nl.
+```
+@Tau.program(trace_example.pro)
+
+                         --{{1}}--
+Now when you query this version, you'll see the trace output showing the
+execution path.
+
+                           {{1}}
+```prolog
+factorial(4, F).
+```
+@Tau.query(trace_example.pro)
 
 ## `@Tau`
 
@@ -501,11 +687,10 @@ __Type in the Prolog-query for identifying the parents of barbara.__
 ## Implementation
 
                          --{{0}}--
-The code shows how the macros were implemented by using a minified version of
-the Tau-Prolog JavaScript interpreter. If you want to host your own version of
-this library, you will have to change the url.
-Since [rawgit](https://raw.githubusercontent.com) is going to stop its service,
-I recommend [jsDelivr](https://www.jsdelivr.com).
+The code shows how the macros were implemented. Tau-Prolog is installed via npm
+and bundled together with all of its modules into `dist/index.js` (see
+`src/index.js` and `package.json`), which sets `window.pl`. Run `npm install`
+and `npm run build` to rebuild it.
 
 `````` markdown
 @Tau.program
@@ -519,10 +704,41 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
     db: db
   };
   
+  // Modules defined with :- module(Name, Exports) become loadable in every
+  // other program via :- use_module(library(Name)). Built-in libraries stay.
+  function share_modules(session) {
+    var pl = window.pl;
+    var own = pl.lia_user_modules = pl.lia_user_modules || {};
+    for (var name in session.modules) {
+      var mod = session.modules[name];
+      if (name === "user" || name === "system" || mod.is_library || mod.lia_imported) continue;
+      if (pl.modules.hasOwnProperty(name) && !own[name]) continue;
+      own[name] = true;
+      (function(name, mod) {
+        var deps = Object.keys(mod.modules).filter(function(k) {
+          return k !== "user" && k !== "system" && pl.modules.hasOwnProperty(k);
+        });
+        // every importing program gets its own view of the module
+        Object.defineProperty(pl.modules, name, {
+          configurable: true,
+          enumerable: true,
+          get: function() {
+            var copy = Object.create(mod);
+            copy.modules = {};
+            copy.dependencies = deps;
+            copy.lia_imported = true;
+            return copy;
+          }
+        });
+      })(name, mod);
+    }
+  }
+
   var result = null;
   window['@0']['session'].consult(db, {
     success: function() {
       result = "database '@0' loaded";
+      share_modules(window['@0']['session']);
     },
     error: function(err) {
       var c_err = window.pl.flatten_error(err);
@@ -569,95 +785,95 @@ I recommend [jsDelivr](https://www.jsdelivr.com).
 </script>
 @end
 
-@Tau.query
+@Tau.query: @Tau.run_(@0,false)
+
+@Tau.trace: @Tau.run_(@0,true)
+
+@Tau.run_
 <script>
   var query = `@'input`;
-  
-  try {
-    // Create a new output buffer for this query execution
-    var output_buffer = "";
-    var custom_output = {
-      put: function(text, stream) {
-        output_buffer += text;
-        return true;
-      },
-      flush: function() { return true; }
-    };
-    
-    // Override the session's user_output stream
-    window['@0']['session'].streams['user_output'].stream = custom_output;
-    
-    if(window['@0']['query'] == null || window['@0']['query_str'] != query) {
-      window['@0']['query_str'] = query;
-      window['@0']['query'] = null;
-      window['@0']['rslt'] = ""; // Reset results for new query
-      
-      window['@0']['session'].query(query, {
-        success: function(goal) {
-          window['@0']['query'] = goal;
-          // Get answer immediately after successful query
-          window['@0']['session'].answer({
-            success: function(answer) {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
-              send.lia(window['@0']['rslt'].trim());
-            },
-            fail: function() {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              window['@0']['rslt'] += "false.\n";
-              send.lia(window['@0']['rslt'].trim());
-            },
-            error: function(err) {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              var c_err = window.pl.flatten_error(err);
-              window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-              send.lia(window['@0']['rslt'].trim());
-            },
-            limit: function() {
-              if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-              window['@0']['rslt'] += "Limit exceeded.\n";
-              send.lia(window['@0']['rslt'].trim());
-            }
-          });
-        },
-        error: function(err) {
-          var c_err = window.pl.flatten_error(err);
-          var error = new LiaError("parsing query for '@0' => " + err.args[0], 1);
-          error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
-          throw error;
-        }
-      });
-    } else {
-      // Query already executed, get next answer
-      window['@0']['session'].answer({
-        success: function(answer) {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          window['@0']['rslt'] += window.pl.format_answer(answer) + ".\n";
-          send.lia(window['@0']['rslt'].trim());
-        },
-        fail: function() {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          window['@0']['rslt'] += "false.\n";
-          send.lia(window['@0']['rslt'].trim());
-        },
-        error: function(err) {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          var c_err = window.pl.flatten_error(err);
-          window['@0']['rslt'] += "Error: " + c_err.type + "\n";
-          send.lia(window['@0']['rslt'].trim());
-        },
-        limit: function() {
-          if(output_buffer) window['@0']['rslt'] += output_buffer + "\n";
-          window['@0']['rslt'] += "Limit exceeded.\n";
-          send.lia(window['@0']['rslt'].trim());
-        }
-      });
+  var trace = @1;
+  var db = window['@0'];
+  if (!db || !db.session) {
+    throw {message: "'@0' has not been consulted. Use @Tau.program first."};
+  }
+  var session = db.session;
+  var thread = session.thread;
+
+  // collect write/1 output of this run
+  var output_buffer = "";
+  session.streams['user_output'].stream = {
+    put: function(text) { output_buffer += text; return true; },
+    flush: function() { return true; }
+  };
+
+  // print the resolution steps since the last answer to the console
+  function show_trace() {
+    var states = thread.debugger_states;
+    var max = 500;
+    for (; db.traced < states.length; db.traced++) {
+      var i = db.traced, state = states[i];
+      if (state.goal === null) continue;
+      if (i >= max) {
+        console.log("… " + (states.length - i) + " more steps not shown");
+        db.traced = Infinity;
+        break;
+      }
+      // show the query's own variable names instead of _1, _2, …
+      var names = {};
+      for (var name in state.substitution.links) {
+        var value = state.substitution.links[name];
+        if (window.pl.type.is_variable(value)) names[value.id] = new window.pl.type.Var(name);
+      }
+      var goal = state.goal.apply(new window.pl.type.Substitution(names));
+      var redo = i > 0 && state.parent !== states[i - 1];
+      console.log(String(i + 1).padStart(4) + (redo ? " ↩ " : "   ") + goal.toString({session: session, quoted: true}));
     }
   }
-  catch(e) {
-    throw {message: "'@0' has not been consulted"};
+
+  function finish(text) {
+    if (trace) {
+      show_trace();
+      console.log("     ⇒ " + text);
+    }
+    if (output_buffer) db.rslt += output_buffer + "\n";
+    db.rslt += text + "\n";
+    send.lia(db.rslt.trim());
   }
-  
+
+  var handlers = {
+    success: function(answer) { finish(window.pl.format_answer(answer) + "."); },
+    fail:    function() { finish("false."); },
+    error:   function(err) { finish("Error: " + window.pl.flatten_error(err).type); },
+    limit:   function() { finish("Limit exceeded."); }
+  };
+
+  thread.debugger = trace;
+  var key = (trace ? "trace:" : "query:") + query;
+
+  if (db.query == null || db.query_str != key) {
+    // new query: start over
+    db.query_str = key;
+    db.query = null;
+    db.rslt = "";
+    db.traced = 0;
+    session.query(query, {
+      success: function(goal) {
+        db.query = goal;
+        session.answer(handlers);
+      },
+      error: function(err) {
+        var c_err = window.pl.flatten_error(err);
+        var error = new LiaError("parsing query for '@0' => " + err.args[0], 1);
+        error.add_detail(0, c_err.type + " => " + c_err.found + "; expected => " + c_err.expected, "error", c_err.line - 1, c_err.column);
+        throw error;
+      }
+    });
+  } else {
+    // same query again: next answer
+    session.answer(handlers);
+  }
+
   "LIA: wait";
 </script>
 @end

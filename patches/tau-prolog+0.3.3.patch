@@ -1,0 +1,34 @@
+diff --git a/node_modules/tau-prolog/modules/dom.js b/node_modules/tau-prolog/modules/dom.js
+index 276e472..cc48f5a 100755
+--- a/node_modules/tau-prolog/modules/dom.js
++++ b/node_modules/tau-prolog/modules/dom.js
+@@ -1,5 +1,6 @@
+ var pl;
+-(function( pl ) {
++// patched: run the module body only once pl is known (npm/bundler use)
++var dom_module = function( pl ) {
+ 
+ 	var predicates = function() {
+ 		
+@@ -1115,14 +1116,12 @@ var pl;
+ 
+ 	
+ 
+-	if( typeof module !== 'undefined' ) {
+-		module.exports = function( p ) {
+-			pl = p;
+-			new pl.type.Module("dom", predicates(), exports, options());
+-		};
+-	} else {
+-		new pl.type.Module("dom", predicates(), exports, options());
+-	}
++	new pl.type.Module("dom", predicates(), exports, options());
+ 
++};
+ 
+-})( pl );
++if( typeof module !== 'undefined' ) {
++	module.exports = dom_module;
++} else {
++	dom_module( pl );
++}
