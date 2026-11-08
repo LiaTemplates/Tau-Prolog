@@ -42,7 +42,31 @@ const create = pl.create
 pl.create = function () {
   const session = create.apply(this, arguments)
   useDefaults(session.thread, 'user')
+  // `not goal` without parentheses, as in many textbooks
+  pl.directive['op/3'](session.thread, new Term('op', [new Num(900, false), new Term('fy'), new Term('not')]))
+  // without an explicit step limit, only the time limit below applies
+  if (session.limit === null) {
+    session.limit = Number.MAX_SAFE_INTEGER
+    session.thread.has_limit = true
+    session.thread.current_limit = session.limit
+  }
   return session
+}
+
+// Time limit per answer: an endless loop ends with the limit callback
+// ("Limit exceeded.") instead of freezing the page. Asking for the next
+// answer continues the search with a fresh time limit.
+pl.time_limit = 2000 // ms
+const { Thread } = pl.type
+const again = Thread.prototype.again
+Thread.prototype.again = function (reset_limit) {
+  if (reset_limit !== false) this.deadline = Date.now() + pl.time_limit
+  return again.apply(this, arguments)
+}
+const step = Thread.prototype.step
+Thread.prototype.step = function () {
+  if (this.deadline && Date.now() > this.deadline) this.current_limit = 0
+  return step.apply(this, arguments)
 }
 
 // every module defined with :- module(Name, Exports)

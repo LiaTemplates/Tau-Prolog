@@ -1,6 +1,6 @@
 {
   "name": "lia-tau-prolog",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "LiaScript template for the Tau-Prolog interpreter",
   "private": true,
   "app": "dist/index.js",

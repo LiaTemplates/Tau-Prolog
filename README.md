@@ -1,7 +1,7 @@
 <!--
 author:    Andre Dietrich
 email:     andre.dietrich@ovgu.de
-version:   0.3.3
+version:   0.3.4
 language:  en
 narrator:  US English Female
 
@@ -350,8 +350,9 @@ Tau-Prolog includes several library modules that extend its functionality. You
 can load them with the `use_module/1` directive, for example
 `:- use_module(library(random)).` All of them are part of this template.
 As in SWI-Prolog, `lists` is always loaded, and `not/1` works as another name
-for `\+`. If your program defines its own `append/3` or `not/1`, your
-definition is used.
+for `\+`. `not` is also a prefix operator, so `not member(X, L)` works without
+parentheses, as in many textbooks. If your program defines its own `append/3`
+or `not/1`, your definition is used.
 
 | Module       | Predicates (selection)                                                                 |
 | ------------ | -------------------------------------------------------------------------------------- |
@@ -402,13 +403,40 @@ member(X, [apple, banana, cherry]).
 @Tau.query(lists_demo.pro)
 
                          --{{4}}--
-`not/1` succeeds if its goal cannot be proven. It is the same as `\+`.
+`not/1` succeeds if its goal cannot be proven. It is the same as `\+`. The
+parentheses are optional: `not member(kiwi, [apple, banana, cherry])` works
+too.
 
                            {{4}}
 ```prolog
-not(member(kiwi, [apple, banana, cherry])).
+not member(kiwi, [apple, banana, cherry]).
 ```
 @Tau.query(lists_demo.pro)
+
+### Endless loops
+
+                         --{{0}}--
+A query that runs for more than two seconds without an answer stops with
+`Limit exceeded.` instead of freezing the page. Run the query again to keep
+searching for another two seconds. A `@Tau.check` that hits the limit counts as
+`false`. To allow longer searches, set the time in milliseconds in a script of
+your course, for example `window.pl.time_limit = 10000`.
+
+```prolog natural.pro
+natural(0).
+natural(N) :- natural(M), N is M + 1.
+```
+@Tau.program(natural.pro)
+
+                         --{{1}}--
+There is no negative natural number, but the program does not know that. It
+keeps counting until the time limit stops it.
+
+                           {{1}}
+```prolog
+natural(N), N < 0.
+```
+@Tau.query(natural.pro)
 
 ### Own modules
 
